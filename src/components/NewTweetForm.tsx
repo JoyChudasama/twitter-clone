@@ -1,7 +1,7 @@
 import { useSession } from "next-auth/react";
 import { Button } from "./Button";
 import { ProfileImage } from "./ProfileImage";
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 
 
 function updateTextAreaSize(textArea?: HTMLTextAreaElement) {
