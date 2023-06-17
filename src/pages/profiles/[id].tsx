@@ -1,3 +1,6 @@
-export function Profile(){
-    return <div>Profile</div>
+import { useRouter } from 'next/router'
+ 
+export default function Page() {
+  const router = useRouter()
+  return <p>PROFILE</p>
 }
