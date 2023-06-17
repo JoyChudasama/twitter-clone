@@ -4,29 +4,27 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { VscHeartFilled, VscHeart } from "react-icons/vsc";
 import { IconHoverEffect } from "./IconHoverEffect";
+import { InfiniteQueryObserverBaseResult, InfiniteQueryObserverResult } from "@tanstack/react-query";
 
 type Tweet = {
-    id: string
-    content: string
-    createdAt: Date
-    likeCount: number
-    likedByMe: boolean
-    user: {
-        id: string,
-        name: string | null
-        image: string | null,
-    }
-}
+    id: string;
+    content: string;
+    createdAt: Date;
+    likeCount: number;
+    likedByMe: boolean;
+    user: { id: string; image: string | null; name: string | null };
+};
 
 type InfiniteTweetListProps = {
-    isLoading: boolean
-    isError: boolean
-    hasMore: boolean
-    fetchNewTweets: () => Promise<unknown>
-    tweets?: Tweet[]
-}
+    isLoading: boolean;
+    isError: boolean;
+    hasMore: boolean | undefined;
+    fetchNewTweets: () => Promise<InfiniteQueryObserverBaseResult>;
+    tweets?: Tweet[];
+};
 
-export function InfiniteTweetList({ tweets, isError, isLoading, fetchNewTweets, hasMore }: InfiniteTweetListProps) {
+
+export function InfiniteTweetList({ tweets, isError, isLoading, fetchNewTweets, hasMore = false }: InfiniteTweetListProps) {
     if (isLoading) return <h1>Loading</h1>
 
     if (isError) return <h1>Error</h1>
@@ -36,7 +34,12 @@ export function InfiniteTweetList({ tweets, isError, isLoading, fetchNewTweets, 
     }
 
     return <ul>
-        <InfiniteScroll dataLength={tweets.length} next={fetchNewTweets} hasMore={hasMore} loader={'Loading...'}>
+        <InfiniteScroll
+            dataLength={tweets.length}
+            next={fetchNewTweets}
+            hasMore={hasMore}
+            loader={'Loading...'}
+        >
             {tweets.map((tweet) => {
                 return <TweetCard key={tweet.id} {...tweet} />
             })}
@@ -89,7 +92,7 @@ function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
     return (
         <button className={`group -ml-2 items-center gap-1 self-start flex 
         transition-colors duration-200 ${likedByMe ? "text-red-500" : "text-gray-500 hover:text-red-500 focus-visible:red-text-500"}`}>
-        
+
             <IconHoverEffect red>
                 <HeartIcon className={`transition-colors duration-200 ${likedByMe ? "fill-red-500" : "fill-gray-500 group-hover:fill-red-500 group-focus-visible:fill-red-500"}`} />
             </IconHoverEffect >
