@@ -6,6 +6,7 @@ import { VscHeartFilled, VscHeart } from "react-icons/vsc";
 import { IconHoverEffect } from "./IconHoverEffect";
 import { InfiniteQueryObserverBaseResult } from "@tanstack/react-query";
 import { api } from "~/utils/api";
+import { LoadingSpinner } from "./LoadingSpinner";
 
 type Tweet = {
     id: string;
@@ -26,7 +27,7 @@ type InfiniteTweetListProps = {
 
 
 export function InfiniteTweetList({ tweets, isError, isLoading, fetchNewTweets, hasMore = false }: InfiniteTweetListProps) {
-    if (isLoading) return <h1>Loading</h1>
+    if (isLoading) return <LoadingSpinner />
 
     if (isError) return <h1>Error</h1>
 
@@ -39,7 +40,7 @@ export function InfiniteTweetList({ tweets, isError, isLoading, fetchNewTweets, 
             dataLength={tweets.length}
             next={fetchNewTweets}
             hasMore={hasMore}
-            loader={'Loading...'}
+            loader={<LoadingSpinner />}
         >
             {tweets.map((tweet) => {
                 return <TweetCard key={tweet.id} {...tweet} />
