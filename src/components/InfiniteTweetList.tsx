@@ -4,7 +4,8 @@ import Link from "next/link"
 import { useSession } from "next-auth/react"
 import { VscHeartFilled, VscHeart } from "react-icons/vsc";
 import { IconHoverEffect } from "./IconHoverEffect";
-import { InfiniteQueryObserverBaseResult, InfiniteQueryObserverResult } from "@tanstack/react-query";
+import { InfiniteQueryObserverBaseResult } from "@tanstack/react-query";
+import { api } from "~/utils/api";
 
 type Tweet = {
     id: string;
@@ -52,6 +53,44 @@ const dateTimeFormatter = new Intl.DateTimeFormat(undefined, {
 });
 
 function TweetCard({ id, user, content, createdAt, likeCount, likedByMe }: Tweet) {
+
+    const trpcUtils = api.useContext();
+
+    const toggleLike = api.tweet.toggleLike.useMutation({
+        onSuccess: ({ addedLike }) => {
+            const updateData: Parameters<typeof trpcUtils.tweet.infiniteFeed.setInfiniteData>[1] = (oldData) => {
+                
+                if (oldData == null) return;
+
+                const countModifier = addedLike ? 1 : -1;
+
+                return {
+                    ...oldData,
+                    pages: oldData.pages.map(page => {
+                        return {
+                            ...page,
+                            tweets: page.tweets.map(tweet => {
+                                if (tweet.id === id) {
+                                    return {
+                                        ...tweet,
+                                        likeCount: tweet.likeCount + countModifier,
+                                        likedByMe: addedLike
+                                    }
+                                }
+                                return tweet
+                            })
+                        }
+                    })
+                }
+            }
+            trpcUtils.tweet.infiniteFeed.setInfiniteData({}, updateData)
+        }
+    })
+
+    function handleToggleLike() {
+        toggleLike.mutate({ id })
+    }
+
     return <li className="flex gap-4 border-b px-4 py-4">
         <Link href={`/profiles/${user.id}`}>
             <ProfileImage src={user.image} />
@@ -67,7 +106,7 @@ function TweetCard({ id, user, content, createdAt, likeCount, likedByMe }: Tweet
 
             </div>
             <p className="whitespace-pre-wrap">{content}</p>
-            <HeartButton likedByMe={likedByMe} likeCount={likeCount} />
+            <HeartButton onClick={handleToggleLike} isLoading={toggleLike.isLoading} likedByMe={likedByMe} likeCount={likeCount} />
         </div>
     </li>
 }
@@ -75,10 +114,12 @@ function TweetCard({ id, user, content, createdAt, likeCount, likedByMe }: Tweet
 type HeartButtonProps = {
     likedByMe: boolean
     likeCount: number
+    isLoading: boolean,
+    onClick: () => void
 }
 
 
-function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
+function HeartButton({ likedByMe, likeCount, isLoading, onClick }: HeartButtonProps) {
     const session = useSession();
     const HeartIcon = likedByMe ? VscHeartFilled : VscHeart;
 
@@ -90,7 +131,7 @@ function HeartButton({ likedByMe, likeCount }: HeartButtonProps) {
     }
 
     return (
-        <button className={`group -ml-2 items-center gap-1 self-start flex 
+        <button disabled={isLoading} onClick={onClick} className={`group -ml-2 items-center gap-1 self-start flex 
         transition-colors duration-200 ${likedByMe ? "text-red-500" : "text-gray-500 hover:text-red-500 focus-visible:red-text-500"}`}>
 
             <IconHoverEffect red>
